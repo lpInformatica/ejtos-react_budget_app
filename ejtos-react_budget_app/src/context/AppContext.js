@@ -1,7 +1,7 @@
-import React, { createContext, useReducer } from 'react';
+import React, {createContext, useReducer} from 'react';
 
 // 5. The reducer - this is used to update the state, based on the action
-export const AppReducer = (state, action) => {
+export const AppReducer = (state = initialState, action) => {
     let budget = 0;
     switch (action.type) {
         case 'ADD_EXPENSE':
@@ -9,7 +9,7 @@ export const AppReducer = (state, action) => {
             total_budget = state.expenses.reduce(
                 (previousExp, currentExp) => {
                     return previousExp + currentExp.cost
-                },0
+                }, 0
             );
             total_budget = total_budget + action.payload.cost;
             action.type = "DONE";
@@ -29,8 +29,8 @@ export const AppReducer = (state, action) => {
                 return {
                     ...state
                 }
-            }
-            case 'RED_EXPENSE':
+            };
+        case 'RED_EXPENSE':
                 const red_expenses = state.expenses.map((currentExp)=> {
                     if (currentExp.name === action.payload.name && currentExp.cost - action.payload.cost >= 0) {
                         currentExp.cost =  currentExp.cost - action.payload.cost;
@@ -43,7 +43,7 @@ export const AppReducer = (state, action) => {
                     ...state,
                     expenses: [...red_expenses],
                 };
-            case 'DELETE_EXPENSE':
+        case 'DELETE_EXPENSE':
             action.type = "DONE";
             state.expenses.map((currentExp)=> {
                 if (currentExp.name === action.payload) {
@@ -52,7 +52,7 @@ export const AppReducer = (state, action) => {
                 }
                 return currentExp
             })
-            action.type = "DONE";
+			{/* action.type = "DONE"; */}
             return {
                 ...state,
                 budget
@@ -60,17 +60,16 @@ export const AppReducer = (state, action) => {
         case 'SET_BUDGET':
             action.type = "DONE";
             state.budget = action.payload;
-
             return {
-                ...state,
+                ...state
             };
         case 'CHG_CURRENCY':
+			//let currency = ''
             action.type = "DONE";
             state.currency = action.payload;
             return {
                 ...state
-            }
-
+            };
         default:
             return state;
     }
@@ -78,6 +77,8 @@ export const AppReducer = (state, action) => {
 
 // 1. Sets the initial state when the app loads
 const initialState = {
+	budgetMaxValue: 20000,
+	budgetIncreaseStep: 10,
     budget: 2000,
     expenses: [
         { id: "Marketing", name: 'Marketing', cost: 50 },
@@ -86,7 +87,7 @@ const initialState = {
         { id: "Human Resource", name: 'Human Resource', cost: 40 },
         { id: "IT", name: 'IT', cost: 500 },
     ],
-    currency: '£'
+    currency: '£ Pound'
 };
 
 // 2. Creates the context this is the thing our components import and use to get the state
@@ -98,25 +99,27 @@ export const AppProvider = (props) => {
     // 4. Sets up the app state. takes a reducer, and an initial state
     const [state, dispatch] = useReducer(AppReducer, initialState);
     let remaining = 0;
-
     if (state.expenses) {
             const totalExpenses = state.expenses.reduce((total, item) => {
             return (total = total + item.cost);
         }, 0);
         remaining = state.budget - totalExpenses;
     }
-
     return (
         <AppContext.Provider
             value={{
                 expenses: state.expenses,
                 budget: state.budget,
+				budgetMaxValue: state.budgetMaxValue,
+				budgetIncreaseStep: state.budgetIncreaseStep,
+                currency: state.currency,
                 remaining: remaining,
-                dispatch,
-                currency: state.currency
+                dispatch
             }}
         >
             {props.children}
         </AppContext.Provider>
     );
 };
+
+
